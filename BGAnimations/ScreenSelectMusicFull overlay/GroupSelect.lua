@@ -11,15 +11,13 @@ local WheelRotation = 0.1
 
 local MenuButtonsOnly = PREFSMAN:GetPreference("OnlyDedicatedMenuButtons")
 
+-- Filter the song list for the joined players, unless it already is
+EnsureGroupSorting()
+
 -- Not load anything if no group sorts are available (catastrophic event or no songs)
 if next(GroupsList) == nil then
-    AssembleGroupSorting()
-    UpdateGroupSorting()
-    
-    if next(GroupsList) == nil then
-        Warn("Groups list is currently inaccessible, halting music wheel!")
-        return Def.Actor {}
-    end
+    Warn("Groups list is currently inaccessible, halting music wheel!")
+    return Def.Actor {}
 end
 
 -- So that we can grab the Cur screen and use it outside an actor

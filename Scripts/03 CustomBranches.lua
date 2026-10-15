@@ -20,8 +20,10 @@ end
 function SelectMusicOrCourse()
     UseBasicMode = LoadModule("Config.Load.lua")("BasicMode","Save/OutFoxPrefs.ini") or false
     
-    -- Required to avoid unplayable songs and more
-    UpdateGroupSorting()
+    -- The song list is not filtered here (UpdateGroupSorting): ScreenTitleMenu
+    -- evaluates this branch when it loads, before anyone has joined, and with
+    -- nobody joined no song is playable. ScreenSelectMusicFull filters it for
+    -- the joined players when it loads (EnsureGroupSorting).
     
     if GAMESTATE:IsCourseMode() then
         return "ScreenSelectCourse"

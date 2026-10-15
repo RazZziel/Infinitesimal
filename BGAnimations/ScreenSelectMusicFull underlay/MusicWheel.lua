@@ -9,15 +9,13 @@ local Targets = {}
 
 local ChartPreview = LoadModule("Config.Load.lua")("ChartPreview","Save/OutFoxPrefs.ini")
 
+-- Filter the song list for the joined players, unless it already is
+EnsureGroupSorting()
+
 -- Not load anything if no group sorts are available (catastrophic event or no songs)
 if next(GroupsList) == nil then
-    AssembleGroupSorting()
-    UpdateGroupSorting()
-    
-    if next(GroupsList) == nil then
-        Warn("Groups list is currently inaccessible, halting music wheel!")
-        return Def.Actor {}
-    end
+    Warn("Groups list is currently inaccessible, halting music wheel!")
+    return Def.Actor {}
 end
 
 LastGroupMainIndex = tonumber(LoadModule("Config.Load.lua")("GroupMainIndex", CheckIfUserOrMachineProfile(string.sub(GAMESTATE:GetMasterPlayerNumber(),-1)-1).."/OutFoxPrefs.ini")) or 1

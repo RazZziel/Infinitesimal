@@ -84,6 +84,7 @@ SONGMAN = {
     GetSongGroupBannerPath = function() return "" end,
 }
 local PlayersJoined = true
+GAMESTATE.GetEnabledPlayers = function() return PlayersJoined and { "PlayerNumber_P1" } or {} end
 SongUtil = {
     -- Current game is pump: only pump steps are playable. Like the engine
     -- (GameManager::GetCompatibleStyles with 0 players matches no style),

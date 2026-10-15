@@ -475,25 +475,51 @@ function AssembleGroupSorting()
 	Trace("Group sorting created!")
 end
 
+-- Players GroupsList was last filtered for, see EnsureGroupSorting
+local GroupsListPlayers = nil
+
+local function EnabledPlayersKey()
+    local Players = {}
+    for pn in ivalues(GAMESTATE:GetEnabledPlayers()) do Players[#Players + 1] = ToEnumShortString(pn) end
+    return table.concat(Players, ",")
+end
+
 function UpdateGroupSorting()
     Trace("Creating group list copy from master...")
     GroupsList = deepcopy(MasterGroupsList)
     
     Trace("Removing unplayable songs from list...")
-    for MainGroup in pairs(GroupsList) do
-        for SubGroup in pairs(GroupsList[MainGroup].SubGroups) do
-            GroupsList[MainGroup].SubGroups[SubGroup].Songs = PlayableSongs(GroupsList[MainGroup].SubGroups[SubGroup].Songs)
+    -- Walk the lists backwards: table.remove shifts the following entries down,
+    -- so walking forwards skips the entry right after each removed one, and that
+    -- entry stays in the list without being filtered.
+    for MainGroup = #GroupsList, 1, -1 do
+        local SubGroups = GroupsList[MainGroup].SubGroups
+        for SubGroup = #SubGroups, 1, -1 do
+            SubGroups[SubGroup].Songs = PlayableSongs(SubGroups[SubGroup].Songs)
             
-            if #GroupsList[MainGroup].SubGroups[SubGroup].Songs == 0 then
-                table.remove(GroupsList[MainGroup].SubGroups, SubGroup)
+            if #SubGroups[SubGroup].Songs == 0 then
+                table.remove(SubGroups, SubGroup)
             end
         end
         
-        if #GroupsList[MainGroup].SubGroups == 0 then
+        if #SubGroups == 0 then
             table.remove(GroupsList, MainGroup)
         end
     end
+    GroupsListPlayers = EnabledPlayersKey()
     
     MESSAGEMAN:Broadcast("UpdateChartDisplay")
-    Trace("Group sorting updated!")
+    Trace("Group sorting updated! (players: " .. GroupsListPlayers .. ")")
+end
+
+-- GroupsList depends on who is playing: SongUtil.GetPlayableSteps only returns
+-- the charts of the styles the enabled players can play, and none at all while
+-- nobody has joined. The song select screen calls this before reading
+-- GroupsList, so the list it shows and the positions it remembers (group and
+-- song indexes) always belong to the same list, filtered for those players.
+function EnsureGroupSorting()
+    if next(MasterGroupsList) == nil then AssembleGroupSorting() end
+    if next(GroupsList) == nil or GroupsListPlayers ~= EnabledPlayersKey() then
+        UpdateGroupSorting()
+    end
 end
