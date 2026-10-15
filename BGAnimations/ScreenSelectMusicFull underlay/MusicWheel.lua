@@ -97,8 +97,12 @@ local function InputHandler(event)
 				MESSAGEMAN:Broadcast("Scroll", { Direction = 1 })
 				
 			elseif button == "Start" or button == "MenuStart" or button == "Center" then
-				-- Save this for later
+				-- Save this for later. The group too: until a group is chosen in the
+				-- group wheel the saved one is still 0 (ResetLuaMods), and a group 0
+				-- makes the next visit reset the song index as well.
 				LastSongIndex = SongIndex
+				LoadModule("Config.Save.lua")("GroupMainIndex", LastGroupMainIndex, CheckIfUserOrMachineProfile(string.sub(pn,-1)-1).."/OutFoxPrefs.ini")
+				LoadModule("Config.Save.lua")("GroupSubIndex", LastGroupSubIndex, CheckIfUserOrMachineProfile(string.sub(pn,-1)-1).."/OutFoxPrefs.ini")
 				LoadModule("Config.Save.lua")("SongIndex", LastSongIndex, CheckIfUserOrMachineProfile(string.sub(pn,-1)-1).."/OutFoxPrefs.ini")
 				
 				MESSAGEMAN:Broadcast("MusicWheelStart")

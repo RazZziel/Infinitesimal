@@ -140,4 +140,17 @@ E.LoadSelectMusic()
 Check(CurrentGroup() == "Group/PIU Extra", "group = Group/PIU Extra (got: " .. CurrentGroup() .. ")")
 Check(GAMESTATE:GetCurrentSong() == S.DrM, "song = Dr. M (got: " .. Title(GAMESTATE:GetCurrentSong()) .. ")")
 
+-- ----------------------------------------------------------------------------
+print("case 6: a song chosen without opening the group wheel is selected again after the stage")
+E.Boot(Fixture())
+E.StartGame({ PLAYER_1 })
+E.LoadSelectMusic()
+Check(CurrentGroup() == "Special/All Tunes", "the wheel starts on Special/All Tunes (got: " .. CurrentGroup() .. ")")
+Check(E.ScrollToSong(PLAYER_1, S.Csikos), "Csikos Post is in All Tunes")
+E.PlayCurrentSong(PLAYER_1)
+E.FinishStage()
+E.LoadSelectMusic()
+Check(CurrentGroup() == "Special/All Tunes", "group = Special/All Tunes (got: " .. CurrentGroup() .. ")")
+Check(GAMESTATE:GetCurrentSong() == S.Csikos, "song = Csikos Post (got: " .. Title(GAMESTATE:GetCurrentSong()) .. ")")
+
 E.Finish()
