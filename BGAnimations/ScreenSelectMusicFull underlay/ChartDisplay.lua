@@ -12,6 +12,8 @@ local ConfirmStart = { PlayerNumber_P1 = false, PlayerNumber_P2 = false }
 
 local ChartArray = nil
 local SongIsChosen = false
+-- Song of the last refresh, to tell a new song from a refresh of the same one
+local RefreshedSong = nil
 local PreviewDelay = THEME:GetMetric("ScreenSelectMusic", "SampleMusicDelay")
 local CenterList = LoadModule("Config.Load.lua")("CenterChartList", "Save/OutFoxPrefs.ini")
 local CanWrap = LoadModule("Config.Load.lua")("WrapChartScroll", "Save/OutFoxPrefs.ini")
@@ -117,6 +119,11 @@ local t = Def.ActorFrame {
     -- Prevent the chart list from moving when transitioning
     OffCommand=function(self)
         SongIsChosen = false
+        -- On the way to gameplay these are the charts about to be played
+        -- (Scripts/99 ChartMemory.lua)
+        for pn in ivalues(GAMESTATE:GetEnabledPlayers()) do
+            RememberPlayedChart(pn, GAMESTATE:GetCurrentSteps(pn))
+        end
     end,
     
     -- This is done to workaround the loss of input when doing the command window pad code
@@ -199,6 +206,16 @@ local t = Def.ActorFrame {
             -- If no charts are left, load all of them again in an attempt to avoid other crashes
             if #ChartArray == 0 then ChartArray = SongUtil.GetPlayableSteps(CurrentSong) end
             table.sort(ChartArray, SortCharts)
+
+            -- On a different song, start each player on the chart closest to the
+            -- one they played last (Scripts/99 ChartMemory.lua). Refreshes of the
+            -- same song keep the cursor where the player left it.
+            if CurrentSong ~= RefreshedSong then
+                RefreshedSong = CurrentSong
+                for pn in ivalues(GAMESTATE:GetEnabledPlayers()) do
+                    ChartIndex[pn] = ClosestChartIndex(ChartArray, LastPlayedChart[pn]) or ChartIndex[pn]
+                end
+            end
         end
 
         if ChartArray then
