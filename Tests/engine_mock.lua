@@ -425,6 +425,30 @@ function M.PlayCurrentSong(pn, ChartMoves)
     return Steps
 end
 
+-- Start on the song, move the chart cursor to the chart with this meter and
+-- description, play it and leave the screen. Returns the steps played, or nil
+-- (staying on the chart list) if the song has no such chart.
+function M.PlayChart(pn, Meter, Description)
+    local function Wanted()
+        local Steps = GAMESTATE:GetCurrentSteps(pn)
+        return Steps and Steps:GetMeter() == Meter and Steps:GetDescription() == Description
+    end
+    M.Press(pn, "Start")
+    local Charts = #SongUtil.GetPlayableSteps(GAMESTATE:GetCurrentSong())
+    for _ = 1, Charts do M.Press(pn, "Left") end -- to the first chart (no wrapping)
+    for _ = 1, Charts do
+        if Wanted() then break end
+        M.Press(pn, "Right")
+    end
+    if not Wanted() then return nil end
+    local Steps = GAMESTATE:GetCurrentSteps(pn)
+    M.Press(pn, "Start")
+    M.Press(pn, "Start")
+    assert(M.Screen.Transition == "SM_GoToNextScreen", "the screen did not go to gameplay")
+    M.LeaveScreen()
+    return Steps
+end
+
 -- ------------------------------------------------------------ assertions
 M.Failures, M.Checks = 0, 0
 function M.Check(Cond, Msg)
